@@ -8,7 +8,7 @@
 // app.listen(3000);
 
 const express = require('express');
-const supperagent = require('superagent');
+const superagent = require('superagent');
 
 const app = express();
 app.use(express.urlencoded({extended: true}));
@@ -37,17 +37,18 @@ function search(req, res){
     URL += `+inauthor:${searchStr}`
   }
 
-  return supperagent.get(URL)
+  return superagent.get(URL)
     .then(result => {
       let books = result.body.items.map(book => new Book);
-      console.log(books)
-      res.render('pages/show', {books})
+      console.log(books);
+      res.render('pages/show', {books});
     })
 
 }
 
 function Book(book){
-  this.title = book.volume.title || 'Thisw book does not have a title';
+  this.title = book.volumeInfo.title || 'This book does not have a title';
+  this.placeholderImage = 'https:/i.imgur.com/J5LVHEL.jpeg';
 }
 
 app.listen(PORT, () => console.log(`app is running on PORT : ${PORT}`))
