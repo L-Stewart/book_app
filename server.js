@@ -2,18 +2,18 @@
 
 const express = require('express');
 const superagent = require('superagent');
-const ejs = require('ejs');
+// const ejs = require('ejs');
 const app = express();
 
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: true,}));
 
 app.set('view engine', 'ejs');
 
 // load env vars =====================
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
-app.use(express.static('./public'));
+app.use(express.static('/public'));
 //====================================
 
 //======================================================================
@@ -27,35 +27,35 @@ function home(req, res){
 }
 
 function search(req, res){
+  // console.log(req.body.search)
   const searchStr = req.body.search[0];
   console.log(searchStr);
   const searchType = req.body.search[1];
-  console.log(searchType);
-  // let URL = 'https://www.goolgeapis.com/books/v1/volumes?q=';
- let URL = `https://www.googleapis.com/books/v1/volumes?q=intitle:{'redwall'}`;
-  // if(searchType === 'title'){
-  //   URL += `intitle:${searchStr}`;
-  //   console.log(URL);
-  // } else if(searchType === 'author'){
-  //   URL += `inauthor:${searchType}`;
-  //   console.log(URL);
-  // }
+
+  let URL = 'https://www.googleapis.com/books/v1/volumes?q=';
+
+  if(searchType === 'title'){
+    URL += `+intitle:${searchStr}`;
+  } else if(searchType === 'author'){
+    URL += `+inauthor:${searchStr}`;
+  }
 
   return superagent.get(URL)
     .then(result => {
-      let inquiry = result.body.items;
-      console.log(inquiry);
-      // let books = result.body.items.map(book => new Book);
+      let books = result.body.items.map(book => new Book(book.volumeInfo));
       // console.log(books);
-      // res.render('pages/searches/show', {books});
-    }).catch((error) => console.log(error));
+      res.render('pages/searches/show', {books});
+    })
+    .catch(err => console.error(err));
 }
 
 function Book(book){
-  this.title = book.volume.title || 'Thisw book does not have a title';
-  this.placeholderImage = 'https:/i.imgur.com/J5LVHEL.jpeg';
+  const placeholder = 'https:/i.imgur.com/J5LVHEL.jpeg';
+  this.title = book.title || 'This book does not have a title';
+  this.image = book.imageLinks ? book.imageLinks.smallThumbnail : placeholder;
 }
 //======================================================================
+
 app.listen(PORT, () => {
   console.log(`running on port: ${PORT}`);
 });
